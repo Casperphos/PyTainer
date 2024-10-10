@@ -1,0 +1,26 @@
+services:
+  mongodb:
+    image: 'mongo:latest'
+    environment:
+      - 'MONGO_INITDB_DATABASE=script_master'
+      - 'MONGO_INITDB_ROOT_PASSWORD=0Bn4A48^3JChT16*IfLP7zi0FGHfQ^j8'
+      - 'MONGO_INITDB_ROOT_USERNAME=admin'
+    ports:
+      - '21370:27017'
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongodb_data:/data/db
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '2137:2137'
+    depends_on:
+      - mongodb
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://admin:0Bn4A48^3JChT16*IfLP7zi0FGHfQ^j8@mongodb:27017/script_master
+
+volumes:
+  mongodb_data:
