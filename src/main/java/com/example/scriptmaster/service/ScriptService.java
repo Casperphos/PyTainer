@@ -11,7 +11,8 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -75,14 +76,30 @@ public class ScriptService {
 
         executorService.submit(() -> {
             try {
-                log.info("Starting script execution: {}", script.getName());
+                log.info("Starting script: {}", script.getName());
+
+                /* INSTALLING REQUIREMENTS */
+
+                ProcessBuilder pipreqs = new ProcessBuilder("pipreqs", "--force", SCRIPT_UPLOAD_DIR)
+                        .redirectErrorStream(true)
+                        .inheritIO();
+                Process pipreqsProcess = pipreqs.start();
+                pipreqsProcess.waitFor();
+
+                ProcessBuilder pipInstall = new ProcessBuilder("python", "-u", "-m", "pip", "install", "-r", SCRIPT_UPLOAD_DIR + "requirements.txt")
+                        .redirectErrorStream(true)
+                        .inheritIO();
+                Process pipProcess = pipInstall.start();
+                pipProcess.waitFor();
+
+                /* RUNNING SCRIPT */
 
                 ProcessKey processKey = new ProcessKey(scriptUUID);
                 File logFile = new File(SCRIPT_LOG_DIR + script.getName() + "_" + processKey + ".log");
 
                 ProcessBuilder processBuilder = new ProcessBuilder("python", "-u", script.getFilePath())
-                        .redirectOutput(logFile)
-                        .redirectErrorStream(true);
+                        .redirectErrorStream(true)
+                        .redirectOutput(logFile);
 
                 Process process = processBuilder.start();
                 processManager.addProcess(processKey, process);
@@ -93,6 +110,7 @@ public class ScriptService {
                 script.setProcessKey(processKey);
                 scriptRepository.save(script);
 
+                log.info("Script started: {}", script.getName());
 
             } catch (Exception exception) {
                 script.setStatus(ScriptStatus.FAILED);
