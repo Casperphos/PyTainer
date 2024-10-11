@@ -1,8 +1,6 @@
 package com.example.scriptmaster.model;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.annotation.PersistenceCreator;
 
 @Data

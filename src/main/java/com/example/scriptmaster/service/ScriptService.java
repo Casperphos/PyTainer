@@ -55,7 +55,7 @@ public class ScriptService {
         Files.write(filePath, file.getBytes());
 
         Script script = new Script(
-                String.valueOf(UUID.randomUUID()),
+                UUID.randomUUID().toString(),
                 fileName,
                 filePath.toString(),
                 ScriptStatus.NOT_STARTED,
