@@ -10,8 +10,8 @@ import java.util.UUID;
 @Document(collection = "file_reference")
 public class FileReference {
     @Id
-    private UUID UUID;
+    private String UUID;
     private String name;
     private String filePath;
-    private UUID scriptUUID;
+    private String scriptUUID;
 }

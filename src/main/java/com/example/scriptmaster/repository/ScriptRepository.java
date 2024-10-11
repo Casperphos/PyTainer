@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface ScriptRepository extends MongoRepository<Script, String> {
-    Optional<Script> findByUUID(UUID uuid);
+    Optional<Script> findByUUID(String UUID);
 }

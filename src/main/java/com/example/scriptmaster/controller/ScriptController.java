@@ -8,9 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/script")
@@ -26,7 +24,7 @@ public class ScriptController {
     }
 
     @GetMapping("/UUID")
-    public ResponseEntity<Script> getScriptData(@RequestParam UUID scriptUUID) {
+    public ResponseEntity<Script> getScriptData(@RequestParam String scriptUUID) {
         Script script = scriptService.getScriptData(scriptUUID);
         return ResponseEntity.ok(script);
     }
@@ -38,27 +36,27 @@ public class ScriptController {
     }
 
     @PostMapping("/run")
-    public ResponseEntity<Void> runScript(@RequestParam UUID scriptUUID) throws IOException {
+    public ResponseEntity<Void> runScript(@RequestParam String scriptUUID) throws IOException {
         scriptService.runScript(scriptUUID);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/stop")
-    public ResponseEntity<Void> stopScript(@RequestParam UUID scriptUUID) {
+    public ResponseEntity<Void> stopScript(@RequestParam String scriptUUID) {
         scriptService.stopScript(scriptUUID);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/log")
     public ResponseEntity<String> getScriptLog(
-            @RequestParam UUID scriptUUID,
+            @RequestParam String scriptUUID,
             @RequestParam(required = false, defaultValue = "100") int maxLines) throws IOException {
         String log = scriptService.getScriptLog(scriptUUID, maxLines);
         return ResponseEntity.ok(log);
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Script> getScriptStatus(@RequestParam UUID scriptUUID) {
+    public ResponseEntity<Script> getScriptStatus(@RequestParam String scriptUUID) {
         Script script = scriptService.getScriptStatus(scriptUUID);
         return ResponseEntity.ok(script);
     }

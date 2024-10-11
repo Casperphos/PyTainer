@@ -1,5 +1,7 @@
 package com.example.scriptmaster.service;
 
+import com.example.scriptmaster.component.ProcessManager;
+import com.example.scriptmaster.model.ProcessKey;
 import com.example.scriptmaster.model.Script;
 import com.example.scriptmaster.model.ScriptStatus;
 import com.example.scriptmaster.repository.ScriptRepository;
@@ -9,8 +11,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -26,13 +27,14 @@ import static com.example.scriptmaster.util.PathHelper.getNormalizedPath;
 @RequiredArgsConstructor
 @Slf4j
 public class ScriptService {
+    private final ProcessManager processManager;
     private final ScriptRepository scriptRepository;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final String SCRIPT_UPLOAD_DIR = "script_upload/";
     private final String SCRIPT_LOG_DIR = "script_log/";
-    private final ConcurrentHashMap<UUID, Process> runningProcesses = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ProcessKey, Process> runningProcesses = new ConcurrentHashMap<>();
 
-    public Script getScriptData(UUID scriptUUID) {
+    public Script getScriptData(String scriptUUID) {
         return scriptRepository.findByUUID(scriptUUID)
                 .orElseThrow(() -> new ResourceNotFoundException("Couldn't find script with UUID: " + scriptUUID));
     }
@@ -51,18 +53,18 @@ public class ScriptService {
         Path filePath = getNormalizedPath(SCRIPT_UPLOAD_DIR + fileName);
         Files.write(filePath, file.getBytes());
 
-        Script script = Script.builder()
-                .UUID(UUID.randomUUID())
-                .name(fileName)
-                .filePath(filePath.toString())
-                .status(ScriptStatus.NOT_STARTED)
-                .lastExecutionTime(null)
-                .build();
+        Script script = new Script(
+                String.valueOf(UUID.randomUUID()),
+                fileName,
+                filePath.toString(),
+                ScriptStatus.NOT_STARTED,
+                null,
+                null);
 
         return scriptRepository.save(script);
     }
 
-    public void runScript(UUID scriptUUID) throws IOException {
+    public void runScript(String scriptUUID) throws IOException {
         // Make sure that SCRIPT_LOG_DIR exists
         Path scriptLogDirPath = getNormalizedPath(SCRIPT_LOG_DIR);
         if (!Files.exists(scriptLogDirPath))
@@ -73,17 +75,24 @@ public class ScriptService {
 
         executorService.submit(() -> {
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder("python", script.getFilePath());
-                processBuilder.redirectErrorStream(true);
-                File logFile = new File(SCRIPT_LOG_DIR + script.getName() + ".log");
-                processBuilder.redirectOutput(logFile);
+                log.info("Starting script execution: {}", script.getName());
+
+                ProcessKey processKey = new ProcessKey(scriptUUID);
+                File logFile = new File(SCRIPT_LOG_DIR + script.getName() + "_" + processKey + ".log");
+
+                ProcessBuilder processBuilder = new ProcessBuilder("python", "-u", script.getFilePath())
+                        .redirectOutput(logFile)
+                        .redirectErrorStream(true);
 
                 Process process = processBuilder.start();
-                runningProcesses.put(scriptUUID, process);
+                processManager.addProcess(processKey, process);
+                runningProcesses.put(processKey, process);
 
                 script.setStatus(ScriptStatus.RUNNING);
                 script.setLastExecutionTime(LocalDateTime.now());
+                script.setProcessKey(processKey);
                 scriptRepository.save(script);
+
 
             } catch (Exception exception) {
                 script.setStatus(ScriptStatus.FAILED);
@@ -93,7 +102,7 @@ public class ScriptService {
         });
     }
 
-    public void stopScript(UUID scriptUUID) {
+    public void stopScript(String scriptUUID) {
         Process process = runningProcesses.get(scriptUUID);
 
         if (process != null) {
@@ -109,7 +118,7 @@ public class ScriptService {
     }
 
     // TODO: Implement maxLines
-    public String getScriptLog(UUID scriptUUID, int maxLines) throws IOException {
+    public String getScriptLog(String scriptUUID, int maxLines) throws IOException {
         // Make sure that SCRIPT_LOG_DIR exists
         Path scriptLogDirPath = getNormalizedPath(SCRIPT_LOG_DIR);
         if (!Files.exists(scriptLogDirPath))
@@ -122,7 +131,7 @@ public class ScriptService {
         return new String(Files.readAllBytes(logPath));
     }
 
-    public Script getScriptStatus(UUID scriptUUID) {
+    public Script getScriptStatus(String scriptUUID) {
         return scriptRepository.findByUUID(scriptUUID)
                 .orElseThrow(() -> new ResourceNotFoundException("Couldn't find script with UUID: " + scriptUUID));
     }
