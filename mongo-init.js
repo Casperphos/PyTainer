@@ -1,7 +1,6 @@
 db = db.getSiblingDB('script_master');
 
 db.createCollection('script');
-db.createCollection('file_reference');
 
 db.createUser({
     user: 'admin',

@@ -236,7 +236,7 @@ public class ScriptService {
         Path fullPath = getNormalizedPath(SCRIPT_UPLOAD_DIR + filePath);
 
         if (!fullPath.startsWith(getNormalizedPath(SCRIPT_UPLOAD_DIR + script.getProcessKey())))
-            throw new SecurityException("Access to file is not allowed");
+            throw new SecurityException("Access to file is not allowed"); // TODO: Handle in GlobalExceptionHandler
 
         if (!Files.exists(fullPath) || Files.isDirectory(fullPath))
             throw new ResourceNotFoundException("File not found: " + filePath);
