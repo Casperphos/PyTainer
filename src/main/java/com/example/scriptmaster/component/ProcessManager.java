@@ -1,19 +1,31 @@
 package com.example.scriptmaster.component;
 
-import com.example.scriptmaster.model.ProcessKey;
+import com.example.scriptmaster.model.Script;
+import com.example.scriptmaster.model.ScriptStatus;
+import com.example.scriptmaster.repository.ScriptRepository;
 import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@RequiredArgsConstructor
 public class ProcessManager {
-    private final ConcurrentHashMap<ProcessKey, Process> runningProcesses = new ConcurrentHashMap<>();
+    private final ScriptRepository scriptRepository;
+    private final ConcurrentHashMap<String, Process> runningProcesses = new ConcurrentHashMap<>();
 
-    public void addProcess(ProcessKey processKey, Process process) {
+    public Process getProcess(String processKey) {
+        return runningProcesses.get(processKey);
+    }
+
+    public void addProcess(String processKey, Process process) {
         runningProcesses.put(processKey, process);
     }
 
-    public void removeProcess(ProcessKey processKey) {
+    public void killProcess(String processKey) {
+        runningProcesses.get(processKey).destroyForcibly();
         runningProcesses.remove(processKey);
     }
 
@@ -24,5 +36,11 @@ public class ProcessManager {
                 process.destroyForcibly();
         }
         runningProcesses.clear();
+
+        List<Script> allScripts = scriptRepository.findAll();
+        for (Script script : allScripts) {
+            script.setStatus(ScriptStatus.STOPPED);
+            scriptRepository.save(script);
+        }
     }
 }

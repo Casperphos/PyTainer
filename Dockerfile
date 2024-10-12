@@ -11,7 +11,8 @@ RUN gradle build --no-daemon
 FROM openjdk:23-slim
 
 RUN apt-get update && apt-get install -y python3 python3-pip
-RUN pip install pipreqs
+# TODO: Learn how to install pipreqs correctly
+# RUN pip install pipreqs
 
 WORKDIR /app
 

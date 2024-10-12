@@ -13,10 +13,9 @@ import java.time.LocalDateTime;
 @Document(collection = "script")
 public class Script {
     @Id
-    private String UUID;
+    private String processKey;
     private String name;
     private String filePath;
     private ScriptStatus status;
     private LocalDateTime lastExecutionTime;
-    private ProcessKey processKey;
 }
