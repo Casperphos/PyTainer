@@ -1,4 +1,4 @@
-package com.example.scriptmaster.exception;
+package com.example.pytainer.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

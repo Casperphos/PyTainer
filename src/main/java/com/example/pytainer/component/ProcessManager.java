@@ -1,8 +1,8 @@
-package com.example.scriptmaster.component;
+package com.example.pytainer.component;
 
-import com.example.scriptmaster.model.Script;
-import com.example.scriptmaster.model.ScriptStatus;
-import com.example.scriptmaster.repository.ScriptRepository;
+import com.example.pytainer.model.Script;
+import com.example.pytainer.model.ScriptStatus;
+import com.example.pytainer.repository.ScriptRepository;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

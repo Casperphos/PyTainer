@@ -1,6 +1,6 @@
-package com.example.scriptmaster.util;
+package com.example.pytainer.util;
 
-import com.example.scriptmaster.repository.ScriptRepository;
+import com.example.pytainer.repository.ScriptRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.RandomStringGenerator;
 import org.springframework.stereotype.Component;

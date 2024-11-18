@@ -1,12 +1,12 @@
-package com.example.scriptmaster.service;
+package com.example.pytainer.service;
 
-import com.example.scriptmaster.component.ProcessManager;
-import com.example.scriptmaster.exception.ScriptMasterException;
-import com.example.scriptmaster.model.FileNode;
-import com.example.scriptmaster.model.Script;
-import com.example.scriptmaster.model.ScriptStatus;
-import com.example.scriptmaster.repository.ScriptRepository;
-import com.example.scriptmaster.util.RandomHelper;
+import com.example.pytainer.component.ProcessManager;
+import com.example.pytainer.exception.ScriptMasterException;
+import com.example.pytainer.model.FileNode;
+import com.example.pytainer.model.Script;
+import com.example.pytainer.model.ScriptStatus;
+import com.example.pytainer.repository.ScriptRepository;
+import com.example.pytainer.util.RandomHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
@@ -32,6 +32,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -40,8 +41,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static com.example.scriptmaster.util.FileHelper.scanDirectory;
-import static com.example.scriptmaster.util.PathHelper.getNormalizedPath;
+import static com.example.pytainer.util.FileHelper.scanDirectory;
+import static com.example.pytainer.util.PathHelper.getNormalizedPath;
 
 @Service
 @RequiredArgsConstructor
@@ -248,5 +249,47 @@ public class ScriptService {
                 .contentLength(Files.size(fullPath))
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(inputStreamResource);
+    }
+
+    public Script restartScript(String processKey) throws IOException, ExecutionException, InterruptedException {
+        if (getScriptData(processKey).getStatus() == ScriptStatus.RUNNING) {
+            log.info("Stopping script: {}", processKey);
+            stopScript(processKey);
+        }
+
+        return runScript(processKey);
+    }
+
+    private void rmrfDirectory(String uploadDirectory, String processKey) throws IOException {
+        Path scriptDir = getNormalizedPath(uploadDirectory + processKey);
+        if (Files.exists(scriptDir)) {
+            Files.walk(scriptDir).sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    log.info("Deleting file: {}", path);
+                    Files.delete(path);
+                } catch (IOException e) {
+                    throw new ScriptMasterException("Failed to delete file: " + path);
+                }
+            });
+        }
+    }
+
+    public Script removeScript(String processKey) throws IOException {
+        Script script = findScript(processKey);
+
+        if (script.getStatus() == ScriptStatus.RUNNING) {
+            log.info("Stopping script: {}", processKey);
+            script = stopScript(processKey);
+        }
+
+        // Delete script directory
+        rmrfDirectory(SCRIPT_UPLOAD_DIR, processKey);
+
+        // Delete log directory
+        rmrfDirectory(SCRIPT_LOG_DIR, processKey);
+
+        // Delete script data
+        scriptRepository.delete(script);
+        return script;
     }
 }

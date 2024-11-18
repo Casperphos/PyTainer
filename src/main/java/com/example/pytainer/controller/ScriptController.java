@@ -1,9 +1,9 @@
-package com.example.scriptmaster.controller;
+package com.example.pytainer.controller;
 
-import com.example.scriptmaster.model.FileNode;
-import com.example.scriptmaster.model.Script;
-import com.example.scriptmaster.model.ScriptStatus;
-import com.example.scriptmaster.service.ScriptService;
+import com.example.pytainer.model.FileNode;
+import com.example.pytainer.model.Script;
+import com.example.pytainer.model.ScriptStatus;
+import com.example.pytainer.service.ScriptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 @RestController
 @RequestMapping("/api/v1/script")
 @RequiredArgsConstructor
+@CrossOrigin
 public class ScriptController {
     private final ScriptService scriptService;
 
@@ -75,5 +76,16 @@ public class ScriptController {
     @GetMapping(value = "/log/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<?>> streamScriptLog(@RequestParam String processKey) {
         return scriptService.streamScriptLog(processKey);
+    }
+
+    @PostMapping("/restart")
+    public ResponseEntity<Script> restartScript(@RequestParam String processKey)
+            throws IOException, ExecutionException, InterruptedException {
+        return ResponseEntity.ok(scriptService.restartScript(processKey));
+    }
+
+    @DeleteMapping("/remove")
+    public ResponseEntity<Script> removeScript(@RequestParam String processKey) throws IOException {
+        return ResponseEntity.ok(scriptService.removeScript(processKey));
     }
 }

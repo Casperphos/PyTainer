@@ -1,6 +1,6 @@
-package com.example.scriptmaster.repository;
+package com.example.pytainer.repository;
 
-import com.example.scriptmaster.model.Script;
+import com.example.pytainer.model.Script;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

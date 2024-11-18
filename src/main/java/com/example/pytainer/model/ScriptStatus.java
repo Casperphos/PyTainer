@@ -1,4 +1,4 @@
-package com.example.scriptmaster.model;
+package com.example.pytainer.model;
 
 public enum ScriptStatus {
     NOT_STARTED,

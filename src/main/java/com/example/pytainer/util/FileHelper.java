@@ -1,6 +1,6 @@
-package com.example.scriptmaster.util;
+package com.example.pytainer.util;
 
-import com.example.scriptmaster.model.FileNode;
+import com.example.pytainer.model.FileNode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

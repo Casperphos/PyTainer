@@ -1,4 +1,4 @@
-package com.example.scriptmaster.model;
+package com.example.pytainer.model;
 
 import lombok.Data;
 

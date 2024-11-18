@@ -1,4 +1,4 @@
-package com.example.scriptmaster.util;
+package com.example.pytainer.util;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

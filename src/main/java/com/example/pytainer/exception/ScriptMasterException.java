@@ -1,4 +1,4 @@
-package com.example.scriptmaster.exception;
+package com.example.pytainer.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

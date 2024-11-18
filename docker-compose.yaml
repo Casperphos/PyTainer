@@ -5,10 +5,13 @@ services:
       - 'MONGO_INITDB_DATABASE=script_master'
       - 'MONGO_INITDB_ROOT_PASSWORD=0Bn4A48^3JChT16*IfLP7zi0FGHfQ^j8'
       - 'MONGO_INITDB_ROOT_USERNAME=admin'
+      - 'MONGO_INITDB_ROOT_INITSCRIPT=db.getSiblingDB("script_master"); db.createCollection("script"); db.createUser({user: "admin", pwd: "0Bn4A48^3JChT16*IfLP7zi0FGHfQ^j8", roles: [{role: "readWrite", db: "script_master"}]});'
+    command: >
+      bash -c "echo \"$$MONGO_INITDB_ROOT_INITSCRIPT\" > /docker-entrypoint-initdb.d/init.js && 
+      docker-entrypoint.sh mongod"
     ports:
       - '21370:27017'
     volumes:
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - mongodb_data:/data/db
 
   app:
